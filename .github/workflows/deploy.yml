@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Deploy to public GitHub Pages repo
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.GH_PAGES_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+        git config --global user.name "github-actions"
+        git config --global user.email "actions@github.com"
+
+        mkdir ../deploy-folder
+        cp -R . ../deploy-folder
+        cd ../deploy-folder
+
+        rm -rf .git
+        git init
+        git remote add origin git@github.com:executeeautomation/practice.git
+        git checkout -b gh-pages
+        git add .
+        git commit -m "Deploy site"
+        git push --force origin gh-pages
